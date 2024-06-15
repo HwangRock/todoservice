@@ -36,3 +36,73 @@
     transform: rotate(360deg);
   }
 }
+
+/* 다크 모드 스타일 */
+.App.dark-mode {
+  background-color: #121212;
+  color: #ffffff; /* 하얀색 글자 */
+}
+
+.App.dark-mode .App-header {
+  background-color: #1e1e1e; /* 더 밝은 배경색 */
+}
+
+.App-dark-mode .App-link {
+  color: #007BFF; /* 파란색 링크 */
+}
+
+.App.dark-mode .MuiPaper-root {
+  background-color: #1e1e1e; /* 더 밝은 배경색 */
+  color: #ffffff; /* 하얀색 글자 */
+}
+
+.App.dark-mode .MuiList-root {
+  background-color: inherit;
+}
+
+.App.dark-mode .MuiListItem-root {
+  background-color: inherit;
+}
+
+.App.dark-mode .MuiListItemText-root {
+  color: #ffffff; /* 하얀색 글자 */
+}
+
+.App.dark-mode .MuiCheckbox-root {
+  color: #007BFF; /* 파란색 체크박스 */
+}
+
+.App.dark-mode .MuiIconButton-root {
+  color: #007BFF; /* 파란색 아이콘 버튼 */
+}
+
+/* 일반 모드에서 버튼 색상 */
+.MuiIconButton-root {
+  color: inherit;
+}
+
+/* 일반 모드에서 체크박스 색상 */
+.MuiCheckbox-root {
+  color: inherit;
+}
+
+/* 다크 모드에서 텍스트 필드 스타일 */
+.App.dark-mode .MuiInputBase-root {
+  color: #ffffff; /* 하얀색 텍스트 */
+}
+
+.App.dark-mode .MuiInput-underline:before {
+  border-bottom: 1px solid #ffffff; /* 하얀색 밑줄 */
+}
+
+.App.dark-mode .MuiInput-underline:hover:not(.Mui-disabled):before {
+  border-bottom: 2px solid #ffffff; /* 하얀색 밑줄 */
+}
+
+.App.dark-mode .MuiInput-underline:after {
+  border-bottom: 2px solid #007BFF; /* 파란색 밑줄 */
+}
+
+.App.dark-mode .MuiInputLabel-root {
+  color: #ffffff; /* 하얀색 라벨 */
+}

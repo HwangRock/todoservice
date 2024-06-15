@@ -1,61 +1,88 @@
-import React from "react";
+import React from 'react';
 import Todo from './Todo';
 import AddTodo from './AddTodo';
-import { Paper, List, Container, Grid, Button, AppBar, Toolbar, Typography } from "@mui/material";
+import { Paper, List, Container, Grid, Button, AppBar, Toolbar, Typography, TextField } from '@material-ui/core';
 import './App.css';
 import { call, signout } from './service/ApiService';
 
 class App extends React.Component {
-  constructor(props) { // 매개변수 props 생성자
-    super(props); // 매개변수 props 초기화
-
-    this.state = { // item 에 item.id, item.title, item.done 매개변수 이름과 값 할당
+  constructor(props) {
+    super(props);
+    this.state = {
       items: [],
-      /* 로딩 중이라는 상태를 표현할 변수 생성자에 상태 변수를 초기화한다.*/
       loading: true,
+      darkMode: false,
+      page: 0,
+      size: 5,
+      keyword: ''
     };
   }
 
-  // add 함수 추가
   add = (item) => {
-    call("/todo", "POST", item).then((response) => {
-      this.setState({ items: response.data });
-    });
+    call("/todo", "POST", item).then(() => this.fetchTodos());
   }
 
   delete = (item) => {
-    call("/todo", "DELETE", item).then((response) => {
-      this.setState({ items: response.data });
-    });
+    call("/todo", "DELETE", item).then(() => this.fetchTodos());
   }
 
   update = (item) => {
-    call("/todo", "PUT", item).then((response) => {
-      this.setState({ items: response.data });
+    call("/todo", "PUT", item).then(() => this.fetchTodos());
+  }
+
+  deleteCompleted = () => {
+    call("/todo/completed", "DELETE", null).then(() => this.fetchTodos());
+  }
+
+  componentDidMount() {
+    this.fetchTodos();
+  }
+
+  fetchTodos = () => {
+    const { page, size, keyword } = this.state;
+    call(`/todo?page=${page}&size=${size}&keyword=${keyword}`, "GET", null).then((response) => {
+      const items = response.data;
+      const totalItems = items.length;
+      const completedItems = items.filter(item => item.done).length;
+      this.setState({ items, totalItems, completedItems, loading: false });
     });
   }
 
-  // componentDidMount는 페이지(돔) 마운트가 일어나고 렌더링 되기 전에 실행된다.
-  componentDidMount() {
-    call("/todo", "GET", null).then((response) => {
-      this.setState({ items: response.data, loading: false });
-    });
+  changePage = (newPage) => {
+    this.setState({ page: newPage, loading: true }, this.fetchTodos);
+  }
+
+  toggleDarkMode = () => {
+    this.setState({ darkMode: !this.state.darkMode });
+  }
+
+  handleSearchChange = (event) => {
+    this.setState({ keyword: event.target.value });
+  }
+
+  handleSearch = () => {
+    this.setState({ loading: true }, this.fetchTodos);
+  }
+
+  calculateCompletionRate = () => {
+    const { totalItems, completedItems } = this.state;
+    return totalItems === 0 ? 0 : (completedItems / totalItems) * 100;
   }
 
   render() {
-    // todoItems에 this.state.items.length 가 0보다 크다면 true 이므로 && 뒤에 값을 넘겨준다.
-    // todoItems = this.state.items.length > 0 ? (<Paper></Paper>):""; 이렇게 해도 같은 결과이다. 조건선택문 ? ternary operator
-    var todoItems = this.state.items.length > 0 && (
+    const { items, darkMode, page, keyword } = this.state;
+    const completionRate = this.calculateCompletionRate().toFixed(1);
+
+    var todoItems = items.length > 0 && (
       <Paper style={{ margin: 16 }}>
         <List>
-          {this.state.items.map((item, idx) => (
+          {items.map((item, idx) => (
             <Todo item={item} key={item.id} delete={this.delete} update={this.update} />
           ))}
         </List>
       </Paper>
     );
 
-    //navigationBar
     var navigationBar = (
       <AppBar position="static">
         <Toolbar>
@@ -65,34 +92,86 @@ class App extends React.Component {
             </Grid>
             <Grid item>
               <Button color="inherit" onClick={signout}>logout</Button>
+              <Button color="inherit" onClick={this.toggleDarkMode}>
+                {darkMode ? 'Light Mode' : 'Dark Mode'}
+              </Button>
             </Grid>
           </Grid>
         </Toolbar>
       </AppBar>
     );
 
-    // loading 중이 아닐 때
     var todoListPage = (
       <div>
         {navigationBar}
         <Container maxWidth="md">
           <AddTodo add={this.add} />
+          <TextField
+            label="검색"
+            value={keyword}
+            onChange={this.handleSearchChange}
+            onKeyPress={(event) => {
+              if (event.key === 'Enter') {
+                this.handleSearch();
+              }
+            }}
+            style={{ marginTop: '20px' }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={this.handleSearch}
+            style={{ marginTop: '20px', marginLeft: '10px' }}
+          >
+            검색
+          </Button>
           <div className="TodoList">{todoItems}</div>
+          <Typography variant="h6" style={{ marginTop: '20px' }}>
+            달성률: {completionRate}%
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={this.deleteCompleted}
+            style={{ marginTop: '20px' }}
+          >
+            완료 항목 삭제
+          </Button>
+          <div style={{ marginTop: '20px' }}>
+            <Button 
+              onClick={() => this.changePage(page - 1)} 
+              disabled={page === 0}
+              style={{ backgroundColor: '#f0f0f0', color: '#000', marginRight: '10px' }}
+            >
+              이전
+            </Button>
+            <Button 
+              onClick={() => this.changePage(page + 1)}
+              style={{ backgroundColor: '#f0f0f0', color: '#000' }}
+            >
+              다음
+            </Button>
+          </div>
         </Container>
       </div>
     );
 
-    // loading 중일 때
-    var loadingPage = <h1>로딩중..</h1>
+    var loadingPage = (
+      <div style={{ textAlign: 'center', marginTop: '20px', color: darkMode ? '#fff' : '#000' }}>
+        <h1>로딩중..</h1>
+      </div>
+    );
+    
     var content = loadingPage;
 
     if (!this.state.loading) {
       content = todoListPage;
     }
-    // 생성된 컴포넌트 JSX를 리턴한다.
+
     return (
-      <div className="App">
+      <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
         {content}
+        <div style={{ marginTop: '700px', marginLeft: '100px' }}>TODO-LIST</div>
       </div>
     );
   }
