@@ -88,7 +88,7 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         // "*" 대신에 실제 허용할 도메인을 명시적으로 지정합니다.
-        config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedHeader("*");
         config.addAllowedMethod("GET");
         config.addAllowedMethod("POST");
